@@ -14,7 +14,7 @@ func NewConn(conn net.Conn, cipher *Cipher) *Conn {
 }
 
 func (c *Conn) Read(b []byte) (int, error) {
-    if c.cipher != nil {
+    if c.cipher == nil {
         return c.conn.Read(b)
     }
     cipherData := make([]byte, len(b))
@@ -26,7 +26,7 @@ func (c *Conn) Read(b []byte) (int, error) {
 }
 
 func (c *Conn) Write(b []byte) (int, error) {
-    if c.cipher != nil {
+    if c.cipher == nil {
         return c.conn.Write(b)
     }
     cipherData := make([]byte, len(b))

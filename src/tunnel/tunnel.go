@@ -9,7 +9,8 @@ import (
 type Tunnel struct {
     faddr, baddr *net.TCPAddr
     clientMode bool
-    cryptoMethod, secret string
+    cryptoMethod string
+    secret []byte
 }
 
 func NewTunnel(faddr, baddr string, clientMode bool, cryptoMethod, secret string) *Tunnel {
@@ -21,7 +22,7 @@ func NewTunnel(faddr, baddr string, clientMode bool, cryptoMethod, secret string
     if err != nil {
         log.Fatalln("resolve backend error:", err)
     }
-    return &Tunnel{a1, a2, clientMode, cryptoMethod, secret}
+    return &Tunnel{a1, a2, clientMode, cryptoMethod, []byte(secret)}
 }
 
 func (t *Tunnel) pipe(dst, src *Conn) {

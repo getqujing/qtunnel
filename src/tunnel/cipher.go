@@ -18,9 +18,9 @@ var cipherMap = map[string]chiperCreator {
     "rc4": newRC4Cipher,
 }
 
-func secretToKey(secret string) []byte {
+func secretToKey(secret []byte) []byte {
     h := sha256.New()
-    return h.Sum([]byte(secret))
+    return h.Sum(secret)
 }
 
 func newRC4Cipher(key []byte) (*Cipher, error) {
@@ -33,7 +33,7 @@ func newRC4Cipher(key []byte) (*Cipher, error) {
     return &Cipher{c, &c2}, nil
 }
 
-func NewCipher(cryptoMethod, secret string) *Cipher {
+func NewCipher(cryptoMethod string, secret []byte) *Cipher {
     cc := cipherMap[cryptoMethod]
     if cc == nil {
         log.Fatalf("unsupported crypto method %s", cryptoMethod)
