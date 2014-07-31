@@ -2,10 +2,25 @@ package main
 
 import (
     "os"
+    "os/signal"
+    "syscall"
     "log"
     "flag"
     "tunnel"
 )
+
+func waitSignal() {
+    var sigChan = make(chan os.Signal, 1)
+    signal.Notify(sigChan)
+    for sig := range sigChan {
+        if sig == syscall.SIGINT || sig == syscall.SIGTERM {
+            log.Printf("terminated by signal %v\n", sig)
+            return
+        } else {
+            log.Printf("received signal: %v, ignore\n", sig)
+        }
+    }
+}
 
 func main() {
     log.SetOutput(os.Stdout)
@@ -19,5 +34,6 @@ func main() {
     flag.Parse()
 
     t := tunnel.NewTunnel(faddr, baddr, clientMode, cryptoMethod, secret)
-    t.Start()
+    go t.Start()
+    waitSignal()
 }
