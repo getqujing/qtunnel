@@ -4,6 +4,8 @@ import (
     "io"
     "net"
     "log"
+    "time"
+    "sync/atomic"
 )
 
 type Tunnel struct {
@@ -11,6 +13,7 @@ type Tunnel struct {
     clientMode bool
     cryptoMethod string
     secret []byte
+    sessionsCount int32
 }
 
 func NewTunnel(faddr, baddr string, clientMode bool, cryptoMethod, secret string) *Tunnel {
@@ -22,24 +25,42 @@ func NewTunnel(faddr, baddr string, clientMode bool, cryptoMethod, secret string
     if err != nil {
         log.Fatalln("resolve backend error:", err)
     }
-    return &Tunnel{a1, a2, clientMode, cryptoMethod, []byte(secret)}
-}
-
-func (t *Tunnel) pipe(dst, src *Conn) {
-    defer dst.Close()
-    _, err := io.Copy(dst, src)
-    if err != nil {
-        log.Print(err)
+    return &Tunnel{
+        faddr: a1,
+        baddr: a2,
+        clientMode: clientMode,
+        cryptoMethod: cryptoMethod,
+        secret: []byte(secret),
+        sessionsCount: 0,
     }
 }
 
+func (t *Tunnel) pipe(dst, src *Conn, c chan int64) {
+    defer func() {
+        dst.CloseWrite()
+        src.CloseRead()
+    }()
+    n, err := io.Copy(dst, src)
+    if err != nil {
+        log.Print(err)
+    }
+    c <- n
+}
+
 func (t *Tunnel) transport(conn net.Conn) {
+    start := time.Now()
     conn2, err := net.DialTCP("tcp", nil, t.baddr)
     if err != nil {
         log.Print(err)
         return
     }
+    connectTime := time.Now().Sub(start)
+    start = time.Now()
     cipher := NewCipher(t.cryptoMethod, t.secret)
+    readChan := make(chan int64)
+    writeChan := make(chan int64)
+    var readBytes, writeBytes int64
+    atomic.AddInt32(&t.sessionsCount, 1)
     var bconn, fconn *Conn
     if t.clientMode {
         fconn = NewConn(conn, nil)
@@ -48,8 +69,18 @@ func (t *Tunnel) transport(conn net.Conn) {
         fconn = NewConn(conn, cipher)
         bconn = NewConn(conn2, nil)
     }
-    go t.pipe(bconn, fconn)
-    go t.pipe(fconn, bconn)
+    go t.pipe(bconn, fconn, writeChan)
+    go t.pipe(fconn, bconn, readChan)
+    select {
+    case readBytes = <-readChan:
+        writeBytes = <-writeChan
+    case writeBytes = <-writeChan:
+        readBytes = <-readChan
+    }
+    transferTime := time.Now().Sub(start)
+    log.Printf("r:%d w:%d ct:%.3f t:%.3f [#%d]", readBytes, writeBytes,
+        connectTime.Seconds(), transferTime.Seconds(), t.sessionsCount)
+    atomic.AddInt32(&t.sessionsCount, -1)
 }
 
 func (t *Tunnel) Start() {

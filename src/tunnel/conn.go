@@ -37,3 +37,15 @@ func (c *Conn) Write(b []byte) (int, error) {
 func (c *Conn) Close() {
     c.conn.Close()
 }
+
+func (c *Conn) CloseRead() {
+    if conn, ok := c.conn.(*net.TCPConn); ok {
+        conn.CloseRead()
+    }
+}
+
+func (c *Conn) CloseWrite() {
+    if conn, ok := c.conn.(*net.TCPConn); ok {
+        conn.CloseWrite()
+    }
+}
