@@ -1,0 +1,10 @@
+#!/bin/sh
+# postinst script for qtunnel
+
+set -e
+
+update-rc.d qtunnel defaults 90 >/dev/null
+
+invoke-rc.d qtunnel start
+
+exit 0

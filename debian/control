@@ -1,0 +1,15 @@
+Source: qtunnel
+Section: net
+Priority: optional
+Maintainer: Zhou Rui <zhourui@getqujing.com>
+Build-Depends: debhelper (>= 7.0.50~)
+Standards-Version: 3.8.4
+Homepage: https://github.com/getqujing/qtunnel
+Vcs-Git: git://github.com/getqujing/qtunnel.git
+#Vcs-Browser: http://git.debian.org/?p=collab-maint/qtunnel.git;a=summary
+
+Package: qtunnel
+Architecture: any
+Depends: ${shlibs:Depends}
+Description: secure transport tunnel
+ Secure transport tunnel from getqujing.com.

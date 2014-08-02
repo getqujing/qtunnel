@@ -1,0 +1,3 @@
+bin/qtunnel /usr/bin
+debian/etc/init.d/qtunnel /etc/init.d
+debian/etc/default/qtunnel /etc/default

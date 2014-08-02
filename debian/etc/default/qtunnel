@@ -1,0 +1,5 @@
+CLIENT_MODE=false
+LISTEN=":6400"
+BACKEND="127.0.0.1:3128"
+SECRET=secret
+LOGTO=syslog

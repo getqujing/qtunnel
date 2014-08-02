@@ -1,0 +1,8 @@
+#!/bin/sh
+# prerm script for qtunnel
+
+set -e
+
+invoke-rc.d qtunnel stop
+
+exit 0
