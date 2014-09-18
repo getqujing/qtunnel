@@ -14,9 +14,10 @@ type Tunnel struct {
     cryptoMethod string
     secret []byte
     sessionsCount int32
+    pool *recycler
 }
 
-func NewTunnel(faddr, baddr string, clientMode bool, cryptoMethod, secret string) *Tunnel {
+func NewTunnel(faddr, baddr string, clientMode bool, cryptoMethod, secret string, size uint32) *Tunnel {
     a1, err := net.ResolveTCPAddr("tcp", faddr)
     if err != nil {
         log.Fatalln("resolve frontend error:", err)
@@ -32,6 +33,7 @@ func NewTunnel(faddr, baddr string, clientMode bool, cryptoMethod, secret string
         cryptoMethod: cryptoMethod,
         secret: []byte(secret),
         sessionsCount: 0,
+        pool: NewRecycler(size),
     }
 }
 
@@ -63,11 +65,11 @@ func (t *Tunnel) transport(conn net.Conn) {
     atomic.AddInt32(&t.sessionsCount, 1)
     var bconn, fconn *Conn
     if t.clientMode {
-        fconn = NewConn(conn, nil)
-        bconn = NewConn(conn2, cipher)
+        fconn = NewConn(conn, nil, t.pool)
+        bconn = NewConn(conn2, cipher, t.pool)
     } else {
-        fconn = NewConn(conn, cipher)
-        bconn = NewConn(conn2, nil)
+        fconn = NewConn(conn, cipher, t.pool)
+        bconn = NewConn(conn2, nil, t.pool)
     }
     go t.pipe(bconn, fconn, writeChan)
     go t.pipe(fconn, bconn, readChan)

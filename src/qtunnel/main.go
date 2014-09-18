@@ -43,7 +43,7 @@ func main() {
         log.SetOutput(w)
     }
 
-    t := tunnel.NewTunnel(faddr, baddr, clientMode, cryptoMethod, secret)
+    t := tunnel.NewTunnel(faddr, baddr, clientMode, cryptoMethod, secret, 4096)
     log.Println("qtunnel started.")
     go t.Start()
     waitSignal()

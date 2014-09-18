@@ -11,8 +11,8 @@ func TestTunnel(t *testing.T) {
     done := make(chan bool)
     data := []byte{1, 2, 3, 4}
     go backendServer(data, done, t)
-    b := NewTunnel("127.1:9446", "127.1:9445", false, "rc4", "secret")
-    f := NewTunnel("127.1:9447", "127.1:9446", true, "rc4", "secret")
+    b := NewTunnel("127.1:9446", "127.1:9445", false, "rc4", "secret", 4)
+    f := NewTunnel("127.1:9447", "127.1:9446", true, "rc4", "secret", 4)
     go b.Start()
     go f.Start()
     // sleep to wait all servers start

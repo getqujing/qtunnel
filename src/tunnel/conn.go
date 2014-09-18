@@ -8,10 +8,15 @@ import (
 type Conn struct {
     conn net.Conn
     cipher *Cipher
+    pool *recycler
 }
 
-func NewConn(conn net.Conn, cipher *Cipher) *Conn {
-    return &Conn{conn, cipher}
+func NewConn(conn net.Conn, cipher *Cipher, pool *recycler) *Conn {
+    return &Conn{
+        conn: conn,
+        cipher: cipher,
+        pool: pool,
+    }
 }
 
 func (c *Conn) Read(b []byte) (int, error) {
@@ -19,10 +24,9 @@ func (c *Conn) Read(b []byte) (int, error) {
     if c.cipher == nil {
         return c.conn.Read(b)
     }
-    cipherData := make([]byte, len(b))
-    n, err := c.conn.Read(cipherData)
+    n, err := c.conn.Read(b)
     if n > 0 {
-        c.cipher.decrypt(b[0:n], cipherData[0:n])
+        c.cipher.decrypt(b[0:n], b[0:n])
     }
     return n, err
 }
@@ -31,9 +35,8 @@ func (c *Conn) Write(b []byte) (int, error) {
     if c.cipher == nil {
         return c.conn.Write(b)
     }
-    cipherData := make([]byte, len(b))
-    c.cipher.encrypt(cipherData, b)
-    return c.conn.Write(cipherData)
+    c.cipher.encrypt(b, b)
+    return c.conn.Write(b)
 }
 
 func (c *Conn) Close() {
