@@ -2,6 +2,7 @@ package tunnel
 
 import (
     "net"
+    "time"
 )
 
 type Conn struct {
@@ -14,6 +15,7 @@ func NewConn(conn net.Conn, cipher *Cipher) *Conn {
 }
 
 func (c *Conn) Read(b []byte) (int, error) {
+    c.conn.SetReadDeadline(time.Now().Add(30 * time.Minute))
     if c.cipher == nil {
         return c.conn.Read(b)
     }
