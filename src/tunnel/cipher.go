@@ -3,7 +3,8 @@ package tunnel
 import (
     "log"
     "crypto/rc4"
-    "crypto/sha256"
+    "crypto/md5"
+    "crypto/aes"
     "crypto/cipher"
 )
 
@@ -16,21 +17,42 @@ type chiperCreator func(key []byte) (*Cipher, error)
 
 var cipherMap = map[string]chiperCreator {
     "rc4": newRC4Cipher,
+    "aes256cfb": newAES256CFBCipher,
 }
 
-func secretToKey(secret []byte) []byte {
-    h := sha256.New()
-    return h.Sum(secret)
+func secretToKey(secret []byte, size int) []byte {
+    // size mod 16 must be 0
+    h := md5.New()
+    buf := make([]byte, size)
+    count := size / md5.Size
+    // repeatly fill the key with the secret
+    for i := 0; i < count; i++ {
+        h.Write(secret)
+        copy(buf[md5.Size*i:md5.Size*(i+1)-1], h.Sum(nil))
+    }
+    return buf
 }
 
-func newRC4Cipher(key []byte) (*Cipher, error) {
-    c, err := rc4.NewCipher(key)
+func newRC4Cipher(secret []byte) (*Cipher, error) {
+    ec, err := rc4.NewCipher(secretToKey(secret, 16))
     if err != nil {
         return nil, err
     }
-    c2 := *c
+    dc := *ec
 
-    return &Cipher{c, &c2}, nil
+    return &Cipher{ec, &dc}, nil
+}
+
+func newAES256CFBCipher(secret []byte) (*Cipher, error) {
+    key := secretToKey(secret, 32)
+    block, err := aes.NewCipher(key)
+    if err != nil {
+        return nil, err
+    }
+    ec := cipher.NewCFBEncrypter(block, key[:block.BlockSize()])
+    dc := cipher.NewCFBDecrypter(block, key[:block.BlockSize()])
+
+    return &Cipher{ec, dc}, nil
 }
 
 func NewCipher(cryptoMethod string, secret []byte) *Cipher {
@@ -38,7 +60,7 @@ func NewCipher(cryptoMethod string, secret []byte) *Cipher {
     if cc == nil {
         log.Fatalf("unsupported crypto method %s", cryptoMethod)
     }
-    c, err := cc(secretToKey(secret))
+    c, err := cc(secret)
     if err != nil {
         log.Fatal(err)
     }
