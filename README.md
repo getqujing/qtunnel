@@ -8,7 +8,7 @@
 
 ##### Why Another Wrapper
 
-Stunnel/stud is great in SSL/TLS based environments, but what we want is a lighter and faster solution that only does one job: transfer encrypted data between servers and clients. We don't need to deal with certification settings and we want the transfer is as fast as possible. So we made qTunnel. Basically, it's a Stunnel/stud without certification settings and SSL handshakes, and it's written in Go.
+[Stunnel/stud](https://www.stunnel.org/index.html) is great in SSL/TLS based environments, but what we want is a lighter and faster solution that only does one job: transfer encrypted data between servers and clients. We don't need to deal with certification settings and we want the transfer is as fast as possible. So we made qTunnel. Basically, it's a Stunnel/stud without certification settings and SSL handshakes, and it's written in Go.
 
 ### Requirements
 
