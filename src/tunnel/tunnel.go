@@ -73,12 +73,8 @@ func (t *Tunnel) transport(conn net.Conn) {
     }
     go t.pipe(bconn, fconn, writeChan)
     go t.pipe(fconn, bconn, readChan)
-    select {
-    case readBytes = <-readChan:
-        writeBytes = <-writeChan
-    case writeBytes = <-writeChan:
-        readBytes = <-readChan
-    }
+    readBytes = <-readChan
+    writeBytes = <-writeChan
     transferTime := time.Now().Sub(start)
     log.Printf("r:%d w:%d ct:%.3f t:%.3f [#%d]", readBytes, writeBytes,
         connectTime.Seconds(), transferTime.Seconds(), t.sessionsCount)
