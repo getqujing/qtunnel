@@ -22,7 +22,7 @@ func TestWrite(t *testing.T) {
     secret := []byte("secret")
     data, data2 := makeTestBuf()
     pool := NewRecycler(4)
-    ln, err := net.Listen("tcp", "127.1:9444")
+    ln, err := net.Listen("tcp", "127.0.0.1:9444")
     if err != nil {
         t.Error(err)
     }
@@ -55,7 +55,7 @@ func TestWrite(t *testing.T) {
         }
         close(done)
     }()
-    conn, err := net.Dial("tcp", "127.1:9444")
+    conn, err := net.Dial("tcp", "127.0.0.1:9444")
     if err != nil {
         t.Error(err)
     }
@@ -82,7 +82,7 @@ func TestRead(t *testing.T) {
     secret := []byte("secret")
     data, data2 := makeTestBuf()
     pool := NewRecycler(4)
-    ln, err := net.Listen("tcp", "127.1:9444")
+    ln, err := net.Listen("tcp", "127.0.0.1:9444")
     if err != nil {
         t.Error(err)
     }
@@ -111,7 +111,7 @@ func TestRead(t *testing.T) {
         }
         close(done)
     }()
-    conn, err := net.Dial("tcp", "127.1:9444")
+    conn, err := net.Dial("tcp", "127.0.0.1:9444")
     if err != nil {
         t.Error(err)
     }
